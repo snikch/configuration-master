@@ -27,7 +27,7 @@
     "Ec2Instance" : {
       "Type" : "AWS::EC2::Instance",
       "Properties" : {
-        "InstanceType"   : "c1.medium",
+        "InstanceType"   : "m1.medium",
         "SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup" } ],
         "KeyName" : { "Ref" : "KeyName" },
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},

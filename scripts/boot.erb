@@ -1,6 +1,9 @@
 #!/bin/bash
 
 curl "<%= boot_package_url %>" -o /tmp/boot.tar.gz
+mkdir /var/go/.ssh
+curl "<%= deploy_key_url %>" > /var/go/.ssh/id_rsa
+chown go:go /var/go/.ssh/id_rsa && chmod 600 /var/go/.ssh/id_rsa
 
 yum install -y --nogpg http://yum.puppetlabs.com/el/5/products/i386/puppetlabs-release-5-1.noarch.rpm
 yum install -y puppet
@@ -13,3 +16,5 @@ export FACTER_WORK_DIR=/tmp/boot/puppet
 <%= facter_variables %>
 puppet apply --modulepath=modules <%= role %>.pp > /var/log/puppet-log
 
+yum install -y rubygems && gem update --system
+gem install bundler --pre  --no-rdoc --no-ri

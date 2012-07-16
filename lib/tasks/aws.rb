@@ -1,12 +1,13 @@
 require "uri"
 require "net/http"
-require "lib/ops/aws_settings"
-require "lib/ops/stacks"
-require "lib/ops/puppet_bootstrap"
-require "lib/ops/rolling_upgrade"
-require "lib/ops/bootstrap_package"
-require "lib/go/system_integration_pipeline"
-require "lib/go/production_deploy_pipeline"
+require "ops/aws_settings"
+require "ops/stacks"
+require "ops/puppet_bootstrap"
+require "ops/rolling_upgrade"
+require "ops/bootstrap_package"
+require "ops/bootstrap_url"
+require "go/system_integration_pipeline"
+require "go/production_deploy_pipeline"
 
 namespace :aws do
   SETTINGS = Ops::AWSSettings.load
@@ -14,7 +15,8 @@ namespace :aws do
   desc "creates the CI environment"
   task :ci_start => ["clean", "package:puppet"] do
     puppet_bootstrap = Ops::PuppetBootstrap.new(:role => "buildserver",
-                                                :boot_package_url => setup_bootstrap)
+                                                :boot_package_url => setup_bootstrap,
+                                                :deploy_key_url => key_bootstrap)
     stacks = Ops::Stacks.new("ci-environment",
                              "KeyName" => SETTINGS.aws_ssh_key_name,
                              "BootScript" => puppet_bootstrap.script)
@@ -83,7 +85,12 @@ namespace :aws do
   end
 
   def setup_bootstrap
-    bucket_name = "aws-twitter-stream-bootstrap-bucket-#{SETTINGS.aws_ssh_key_name}"
+    bucket_name = "learnaby-bootstrap-bucket-#{SETTINGS.aws_ssh_key_name}"
     Ops::BootstrapPackage.new("#{BUILD_DIR}/#{BOOTSTRAP_FILE}", bucket_name).url
+  end
+
+  def key_bootstrap
+    bucket_name = "learnable-credentials"
+    Ops::BootstrapUrl.new("learnable-deploy-key.rsa", bucket_name).url
   end
 end
